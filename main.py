@@ -1,6 +1,6 @@
 from sympy.algebras.quaternion import Quaternion
 from sympy import symbols, cos, sin, atan2, asin, acos, init_printing, pretty
-from sympy import trigsimp, pi, solve
+from sympy import trigsimp, pi, solve, Eq
 from sympy.matrices import rot_axis1, rot_axis2, rot_axis3, Matrix
 
 init_printing()
@@ -104,9 +104,8 @@ print(pretty(m_final))
 print()
 print(" => identify the matrix with the quaternion's generated one")
 
-expr = m_final - generic_quaternion.to_rotation_matrix()
 print()
-print(pretty(expr))
+print(pretty(Eq(m_final, generic_quaternion.to_rotation_matrix())))
 
 print()
 print(" -- Conversion from Quaternion to Euler --\n")
@@ -115,10 +114,20 @@ print(" => solve the previous equation")
 print("NOTE: No computer algebra system can solve this, so you have to work it")
 print("      out yourself.")
 
-#values = solve(expr, g_qw, g_qx, g_qy, g_qz, warn=True, )
-#
-#print()
-#print(pretty(values))
+
+expr = m_final - generic_quaternion.to_rotation_matrix()
+expr2 = trigsimp(expr)
+
+print()
+print(pretty(expr2))
+
+values = solve([
+    expr2,
+    Eq(g_qw**2 + g_qx**2 + g_qy**2 + g_qz**2, 1),
+], [yaw, pitch, roll], warn=True)
+
+print()
+print(pretty(values))
 
 
 
