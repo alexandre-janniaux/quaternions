@@ -112,11 +112,15 @@ print()
 print(" -- Conversion from Quaternion to Euler --\n")
 
 print(" => solve the previous equation")
+print("NOTE: No computer algebra system can solve this, so you have to work it")
+print("      out yourself.")
 
-values = solve(expr, [g_qw, g_qx, g_qy, g_qz])
+#values = solve(expr, g_qw, g_qx, g_qy, g_qz, warn=True, )
+#
+#print()
+#print(pretty(values))
 
-print()
-print(pretty(values))
+
 
 #q = q_final
 #c_yaw   = atan2(2 * (q.d * q.a + q.b * q.c),
