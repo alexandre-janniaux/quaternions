@@ -1,13 +1,13 @@
 from sympy.algebras.quaternion import Quaternion
 from sympy import symbols, cos, sin, atan2, asin, acos, init_printing, pretty
-from sympy import trigsimp, pi, solve, Eq
+from sympy import trigsimp, pi, solve, Eq, refine
 from sympy.matrices import rot_axis1, rot_axis2, rot_axis3, Matrix
 
 init_printing()
 
-yaw   = symbols('yaw')
-pitch = symbols('pitch')
-roll  = symbols('roll')
+yaw   = symbols('yaw', real=True)
+pitch = symbols('pitch', real=True)
+roll  = symbols('roll', real=True)
 
 # Basic system configuration
 x_axis = [ 1, 0, 0 ]
@@ -69,8 +69,9 @@ print(" -- Identification to get back Euler angles from quaternion --")
 print()
 print(" => use a generic quaternion (qw, qz, qy, qz)")
 
-g_qw, g_qx, g_qy, g_qz = symbols("gw gx gy gz")
+g_qw, g_qx, g_qy, g_qz = symbols("gw gx gy gz", real=True)
 generic_quaternion = Quaternion(g_qw, g_qx, g_qy, g_qz)
+quat_norm = g_qw**2 + g_qx**2 + g_qy**2 + g_qz**2
 print()
 print(generic_quaternion)
 
@@ -105,7 +106,8 @@ print()
 print(" => identify the matrix with the quaternion's generated one")
 
 print()
-print(pretty(Eq(m_final, generic_quaternion.to_rotation_matrix())))
+print(pretty(Eq(m_final, generic_quaternion.to_rotation_matrix()) \
+            .subs(quat_norm, 1)))
 
 print()
 print(" -- Conversion from Quaternion to Euler --\n")
@@ -114,22 +116,29 @@ print(" => solve the previous equation")
 print("NOTE: No computer algebra system can solve this, so you have to work it")
 print("      out yourself.")
 
+hint_quat = Eq(quat_norm, 1)
 
-expr = m_final - generic_quaternion.to_rotation_matrix()
-expr2 = trigsimp(expr)
+expr_base = m_final - generic_quaternion.to_rotation_matrix()
+expr = trigsimp(expr_base).subs(quat_norm, 1)
 
 print()
-print(pretty(expr2))
+print(pretty(expr))
 
 values = solve([
-    expr2,
-    Eq(g_qw**2 + g_qx**2 + g_qy**2 + g_qz**2, 1),
+    expr, hint_quat,
+    # yaw >= 0, yaw <= 360,
+    # pitch >= 0, pitch <= 360,
+    # roll >= 0, roll <= 360,
 ], [yaw, pitch, roll], warn=True)
 
 print()
 print(pretty(values))
 
+print()
+print(" => simplify")
 
+print()
+print(values[0][0].rewrite(atan2))
 
 #q = q_final
 #c_yaw   = atan2(2 * (q.d * q.a + q.b * q.c),
