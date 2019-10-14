@@ -28,22 +28,39 @@ def quaternion_from_angle(angle, dir_cos):
                       sin(angle/2) * dir_cos[1],
                       sin(angle/2) * dir_cos[2])
 
-q_yaw   = quaternion_from_angle(yaw, n_yaw)
-q_pitch = quaternion_from_angle(pitch, n_pitch)
+# adding a minus sign here transpose the resulting matrix
+q_yaw   = quaternion_from_angle(-yaw, n_yaw)
+q_pitch = quaternion_from_angle(-pitch, n_pitch)
 q_roll  = quaternion_from_angle(roll, n_roll)
 
-q_final = q_roll * q_pitch * q_yaw;
+q_final = q_roll * q_pitch * q_yaw
 
 print("q_yaw   =", pretty(q_yaw))
 print("q_pitch =", pretty(q_pitch))
 print("q_roll  =", pretty(q_roll))
+
+
+s_yaw, c_yaw = symbols(['s_yaw', 'c_yaw'])
+s_pitch, c_pitch = symbols(['s_pitch', 'c_pitch'])
+s_roll, c_roll = symbols(['s_roll', 'c_roll'])
+
+q_final_sub = (q_final
+               .subs(sin(yaw/2), s_yaw)
+               .subs(cos(yaw/2), c_yaw)
+               .subs(sin(pitch/2), s_pitch)
+               .subs(cos(pitch/2), c_pitch)
+               .subs(sin(roll/2), s_roll)
+               .subs(cos(roll/2), c_roll))
 
 print()
 print("NOTE: Computation of final rotation is done with quaternions")
 print("      multiplication in the reverse order of matrices in VLC because")
 print("      of matrices being transposed in the C code but uploaded in the")
 print("      column major order.")
-print("q_final =", pretty(q_final))
+print("    q[3] = {};".format(q_final_sub.a))
+print("    q[0] = {};".format(q_final_sub.b))
+print("    q[1] = {};".format(q_final_sub.c))
+print("    q[2] = {};".format(q_final_sub.d))
 print()
 
 print(" -- rotation_matrix --\n")
@@ -62,6 +79,26 @@ print(pretty(q_pitch.to_rotation_matrix()))
 print()
 print(" -- q_roll (z_rot) --\n")
 print(pretty(q_roll.to_rotation_matrix()))
+
+print()
+print(" -- q_final(0, 45, 45) --\n")
+print(pretty(q_final.to_rotation_matrix()
+    .subs(yaw, 0)
+    .subs(pitch, pi / 4)
+    .subs(roll, pi / 4)
+    .evalf()))
+
+print()
+print(" -- final matrix(0, 45, 45) -- ")
+m_yaw   = q_yaw.to_rotation_matrix()
+m_pitch = q_pitch.to_rotation_matrix()
+m_roll  = q_roll.to_rotation_matrix()
+m_final = m_roll * m_pitch * m_yaw
+print(pretty(m_final
+             .subs(yaw, pi / 2)
+             .subs(pitch, pi / 4)
+             .subs(roll, pi / 4)
+             .evalf()))
 
 print()
 print(" -- Identification to get back Euler angles from quaternion --")
@@ -109,36 +146,36 @@ print()
 print(pretty(Eq(m_final, generic_quaternion.to_rotation_matrix()) \
             .subs(quat_norm, 1)))
 
-print()
-print(" -- Conversion from Quaternion to Euler --\n")
-
-print(" => solve the previous equation")
-print("NOTE: No computer algebra system can solve this, so you have to work it")
-print("      out yourself.")
-
-hint_quat = Eq(quat_norm, 1)
-
-expr_base = m_final - generic_quaternion.to_rotation_matrix()
-expr = trigsimp(expr_base).subs(quat_norm, 1)
-
-print()
-print(pretty(expr))
-
-values = solve([
-    expr, hint_quat,
-    # yaw >= 0, yaw <= 360,
-    # pitch >= 0, pitch <= 360,
-    # roll >= 0, roll <= 360,
-], [yaw, pitch, roll], warn=True)
-
-print()
-print(pretty(values))
-
-print()
-print(" => simplify")
-
-print()
-print(values[0][0].rewrite(atan2))
+#print()
+#print(" -- Conversion from Quaternion to Euler --\n")
+#
+#print(" => solve the previous equation")
+#print("NOTE: No computer algebra system can solve this, so you have to work it")
+#print("      out yourself.")
+#
+#expr_base = m_final - generic_quaternion.to_rotation_matrix()
+#expr = trigsimp(expr_base).subs(quat_norm, 1)
+#
+#print()
+#print(pretty(expr))
+#
+#values = solve([
+#    expr, hint_quat,
+#    # yaw >= 0, yaw <= 360,
+#    # pitch >= 0, pitch <= 360,
+#    # roll >= 0, roll <= 360,
+#], [yaw, pitch, roll], warn=True)
+#
+#print()
+#print(pretty(values))
+#
+#print(values)
+#
+#print()
+#print(" => simplify")
+#
+#print()
+#print(values[0][0].rewrite(atan2))
 
 #q = q_final
 #c_yaw   = atan2(2 * (q.d * q.a + q.b * q.c),
