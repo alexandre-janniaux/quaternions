@@ -29,9 +29,9 @@ def quaternion_from_angle(angle, dir_cos):
                       sin(angle/2) * dir_cos[2])
 
 # adding a minus sign here transpose the resulting matrix
-q_yaw   = quaternion_from_angle(-yaw, n_yaw)
-q_pitch = quaternion_from_angle(-pitch, n_pitch)
-q_roll  = quaternion_from_angle(roll, n_roll)
+q_yaw   = quaternion_from_angle(yaw, n_yaw)
+q_pitch = quaternion_from_angle(pitch, n_pitch)
+q_roll  = quaternion_from_angle(-roll, n_roll)
 
 q_final = q_roll * q_pitch * q_yaw
 
@@ -57,24 +57,28 @@ print("NOTE: Computation of final rotation is done with quaternions")
 print("      multiplication in the reverse order of matrices in VLC because")
 print("      of matrices being transposed in the C code but uploaded in the")
 print("      column major order.")
+print()
+
 print("    q[3] = {};".format(q_final_sub.a))
 print("    q[0] = {};".format(q_final_sub.b))
 print("    q[1] = {};".format(q_final_sub.c))
 print("    q[2] = {};".format(q_final_sub.d))
 print()
 
-print(" -- rotation_matrix --\n")
-print("NOTE: In comparison with VLC's matrices, they are transposed because")
-print("      they are in row-major order instead of colum-major order.")
+print(" -- rotation_matrix --")
 
+print()
+print("NOTE: Matrix here are appearing as transposed because they are written")
+print("      in column-major order, just like OpenGL and D3D11 is expecting them")
+print()
 
 print()
 print(" -- q_yaw (y_rot) --\n")
-print(pretty(q_yaw.to_rotation_matrix()))
+print(pretty(q_yaw.to_rotation_matrix().transpose()))
 
 print()
 print(" -- q_pitch (x_rot) --\n")
-print(pretty(q_pitch.to_rotation_matrix()))
+print(pretty(q_pitch.to_rotation_matrix().transpose()))
 
 print()
 print(" -- q_roll (z_rot) --\n")
