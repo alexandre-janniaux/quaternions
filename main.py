@@ -102,6 +102,7 @@ print(pretty(m_final
              .subs(yaw, pi / 2)
              .subs(pitch, pi / 4)
              .subs(roll, pi / 4)
+             .transpose()
              .evalf()))
 
 print()
